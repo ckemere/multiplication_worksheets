@@ -7,7 +7,7 @@ latex_header = """%%----------LaTeX template for teachers-----------------------
 \\documentclass[12pt]{article} % Specifies font size
 
 %----------------PACKAGES-------------------------------------------%%
-\\usepackage[left=0.75in, right=0.75in, top=0.5in, bottom=0.5in]{geometry} % Sets all four margins 
+\\usepackage[left=0.75in, right=0.75in, top=1.5in, bottom=1.5in]{geometry} % Sets all four margins 
 \\usepackage[pdftex]{graphicx} % Allows inclusion of image files
 \\usepackage{amssymb} % Access to extra math symbols
 \\usepackage{amsmath} % Access to extra math symbols
@@ -39,7 +39,14 @@ latex_header = """%%----------LaTeX template for teachers-----------------------
  \\begin{minipage}[t]{0.18\\textwidth}\\itm #2 \\end{minipage} \\hfill 
  \\begin{minipage}[t]{0.18\\textwidth}\\itm #3 \\end{minipage} \\hfill
  \\begin{minipage}[t]{0.18\\textwidth}\\itm #4 \\end{minipage}
-} % Fits three problems on a line
+} % Fits five problems on a line
+\\newcommand{\\fiveprobs}[5]{
+\\begin{minipage}[t]{0.13\\textwidth}\\itm #1 \\end{minipage} \\hfill
+ \\begin{minipage}[t]{0.13\\textwidth}\\itm #2 \\end{minipage} \\hfill 
+ \\begin{minipage}[t]{0.13\\textwidth}\\itm #3 \\end{minipage} \\hfill
+ \\begin{minipage}[t]{0.13\\textwidth}\\itm #4 \\end{minipage} \\hfill
+ \\begin{minipage}[t]{0.13\\textwidth}\\itm #5 \\end{minipage}
+} % Fits five problems on a line
 \\newcounter{choice} % Counter for multiple choice problems 
 \\setcounter{choice}{1} % Start the counter at the value 1
 \\newcommand\\achoice{
@@ -57,11 +64,19 @@ latex_header = """%%----------LaTeX template for teachers-----------------------
 % problems with the four basic operations. See examples 
 % in the CONTENT section  
 
-\\newcommand\\divi[2]{
+
+\\newcommand\\longdivi[2]{
 $#1 \\: \\begin{array}{|l}
 \\hline #2
 \\end{array}$
 }
+
+\\newcommand\\divi[2]{
+$\\begin{array}{rr} 
+ & #1 \\\\ 
+ \\div & #2 \\\\ \\hline 
+ \\end{array}$}
+
 
 \\newcommand\\mult[2]{
 $\\begin{array}{rr} 
@@ -115,7 +130,7 @@ latex_page_template = """
 \\setcounter{{prob}}{{1}} % Start the counter at the value 1
 
 \\begin{{center}} 
-  \\textsc{{Lydias's Math Problems \#{seed}}} \\\\ 
+  \\textsc{{Lydias's Easy Multiplication Problems \#{seed}}} \\\\ 
   %Teacher's name
 \\end{{center}}
 
@@ -141,8 +156,9 @@ def form_addition():
     return f'\\addi{{{a}}}{{{b}}}'
 
 def form_multiplication():
-    (a,b) = random.choices(range(2,12), k=2)
+    (a,b) = random.choices(range(2,6), k=2)
     return f'\\mult{{{a}}}{{{b}}}'
+
 
 def form_division():
     pass
@@ -153,7 +169,7 @@ def get_row_of_random_problems():
    #a smaller number on top. Mine can't yet, so Iv'e got to use a less elegant solution.
    
   #  return f'\\threeprobs{{{form_multiplication()}}}{{{form_multiplication()}}}{{{form_multiplication()}}}'
-   return f'\\fourprobs{{{form_multiplication()}}}{{{form_multiplication()}}}{{{form_multiplication()}}}{{{form_multiplication()}}}'
+   return f'\\fiveprobs{{{form_multiplication()}}}{{{form_multiplication()}}}{{{form_multiplication()}}}{{{form_multiplication()}}}{{{form_multiplication()}}}'
 
 def get_rows_of_random_problems(n):
     rows = ""
@@ -161,13 +177,29 @@ def get_rows_of_random_problems(n):
         rows = rows +  '\n\n\\vspace{2cm}\n\n' + get_row_of_random_problems()
     return rows
 
-
+def five_rows_of_five_problems(a_range, b_range):
+    problem_range = [(i,j) for i in range(*a_range) for j in range(*b_range)]
+    pairs = random.sample(problem_range, k=25)
+    return_string = ''
+    counter = 0
+    for row in range(5):
+        return_string += '\n\n\\vspace{2cm}\n\n'
+        return_string += '\\fiveprobs'
+        for prob in range(5):
+            a, b = pairs[counter]
+            return_string += '{\\mult'
+            return_string += f'{{{a}}}{{{b}}}'
+            return_string += '}'
+            counter = counter + 1
+    return return_string
+        
 
 with open(f'worksheet.tex', 'w') as f:
     f.write(latex_header)
-    for seed in range(50):
+    for seed in range(20):
         random.seed(seed)
-        problems = get_rows_of_random_problems(7) 
+        # problems = get_rows_of_random_problems(5)
+        problems = five_rows_of_five_problems((2,7), (2,7))
 
         page = latex_page_template.format(seed=seed, problems=problems)
         f.write(page)
